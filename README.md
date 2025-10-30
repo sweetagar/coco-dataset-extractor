@@ -10,6 +10,7 @@ Download specific classes from the COCO dataset and convert them to YOLO format 
 - 📁 **YOLOv5-ready format** - train/valid directory structure
 - 📈 **Quick counting** - estimate dataset sizes before downloading
 - 🎯 **Class validation** - checks valid COCO classes before download
+- ✂️ **Dataset splitting** - split large datasets into manageable chunks with overlap support
 
 ## Quick Start
 
@@ -77,9 +78,9 @@ python coco-extractor.py <class_name> [options]
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `--worker N` | Number of parallel download workers (default: 4) | `--worker 8` |
-| `--countonly` | Count images and estimate size for specified classes (no download) | `horse dog --countonly` |
-| `--countall` | List all 80 COCO classes with counts and sizes | `--countall` |
+| `--worker N` | Parallel workers (default: 4) | `--worker 8` |
+| `--countonly` | Count images, no download | `horse dog --countonly` |
+| `--countall` | List all 80 COCO classes | `--countall` |
 
 ### Examples
 
@@ -93,6 +94,66 @@ python coco-extractor.py horse --worker 8
 
 # Multiple classes
 python coco-extractor.py horse dog cat bicycle --worker 6
+```
+
+## Dataset Splitter
+
+The `dataset_splitter.py` tool allows you to split large datasets into smaller, manageable chunks. This is particularly useful for:
+
+- **Memory-constrained training** - Work with limited GPU memory
+- **Incremental learning** - Train models progressively on dataset chunks
+- **Ensemble methods** - Create overlapping datasets for model ensemble
+- **Storage optimization** - Process large datasets without copying all files
+- **Smart overlap with decay** - Maintains learning continuity while preventing excessive redundancy
+
+### Dataset Splitter Usage
+
+```bash
+# Basic splitting into 1000-image chunks
+python dataset_splitter.py horse_dataset --chunk-size 1000
+
+# With 20% overlap between chunks for ensemble training
+python dataset_splitter.py horse_dataset --chunk-size 1000 --overlap 0.2
+
+# Create symlinks instead of copying files (saves disk space)
+python dataset_splitter.py horse_dataset --chunk-size 1000 --symlink
+
+# With decay factor (reduces overlap over successive chunks)
+python dataset_splitter.py horse_dataset --chunk-size 1000 --overlap 0.2 --decay 0.8
+
+# Custom output prefix (creates train_chunk0/, train_chunk1/, etc.)
+python dataset_splitter.py horse_dataset --chunk-size 500 --output train
+```
+
+### Dataset Splitter Options
+
+| Option | Description | Default | Example |
+|--------|-------------|---------|---------|
+| `input` | Input dataset path | Required | `horse_dataset` |
+| `--chunk-size` | Images per chunk | 3000 | `--chunk-size 500` |
+| `--overlap` | Overlap ratio (0.0-1.0) | 0.15 | `--overlap 0.2` |
+| `--decay` | Overlap decay (0.0-1.0) | 0.5 | `--decay 0.8` |
+| `--symlink` | Use symlinks vs copy | False | `--symlink` |
+| `--output` | Output dir prefix | inputpath_chunk<num> | `--output train_` |
+
+### Splitter Output Structure
+
+The splitter creates numbered chunks, each with the same YOLOv5 structure:
+
+```
+horse_dataset_chunks/
+├── chunk_0/
+│   ├── train/
+│   │   ├── images/          # Training images for chunk 0
+│   │   └── labels/          # Training labels for chunk 0
+│   ├── valid/
+│   │   ├── images/          # Validation images
+│   │   └── labels/          # Validation labels
+│   └── data.yaml           # YOLOv5 config for this chunk
+├── chunk_1/
+│   └── ... (similar structure)
+└── chunk_N/
+    └── ... (similar structure)
 ```
 
 ## Output Structure
