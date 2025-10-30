@@ -45,6 +45,13 @@ def download_worker(image_queue, className, split_name, coco_instance, catIds, t
                 print(f"{className}. {image_file_name} - To be Downloaded again ({split_name})")
                 os.remove(image_path)
                 if os.path.exists(label_path): os.remove(label_path)
+                
+                # Decrease counter when deleting existing file
+                with counter_lock:
+                    if split_name == "train":
+                        train_counter -= 1
+                    else:
+                        val_counter -= 1
 
             img_data = requests.get(im['coco_url']).content
             annIds = coco_instance.getAnnIds(imgIds=im['id'], catIds=catIds, iscrowd=None)

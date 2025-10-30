@@ -8,7 +8,6 @@ Download specific classes from the COCO dataset and convert them to YOLO format 
 - 🔄 **Safe resume** - automatically handles interrupted downloads
 - 📊 **Progress tracking** with current/total counts
 - 📁 **YOLOv5-ready format** - train/valid directory structure
-- 🐴 **Bug-fixed annotations** - correctly handles multiple objects per image
 - 📈 **Quick counting** - estimate dataset sizes before downloading
 - 🎯 **Class validation** - checks valid COCO classes before download
 
